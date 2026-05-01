@@ -7,9 +7,12 @@ from typing import Optional
 from datetime import date
 import os
 
-from app import employee, leave, payroll
+from app import employee, leave, payroll, performance
 
 app = FastAPI(title="HR Employee Management System")
+
+# Initialize sample performance data after all modules are loaded
+performance._initialize_sample_data()
 
 app.add_middleware(
     CORSMiddleware,
@@ -120,6 +123,75 @@ def get_payslip(emp_id: int, month: int = date.today().month, year: int = date.t
         return payroll.generate_payslip(emp_id, month, year)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+class PerformanceReview(BaseModel):
+    emp_id: int
+    rating: int
+    comments: str
+    reviewer_id: int
+
+
+@app.get("/performance/{emp_id}")
+def get_performance(emp_id: int):
+    try:
+        employee.get_employee(emp_id)
+        reviews_list = performance.get_reviews(emp_id)
+        latest = performance.get_latest_review(emp_id)
+        badge = performance.get_performance_badge(emp_id)
+        bonus = performance.calculate_performance_bonus(emp_id)
+        return {
+            "emp_id": emp_id,
+            "reviews": reviews_list,
+            "latest_review": latest,
+            "badge": badge,
+            "bonus_percentage": bonus,
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.post("/performance/review", status_code=201)
+def add_performance_review(data: PerformanceReview):
+    try:
+        employee.get_employee(data.emp_id)
+        employee.get_employee(data.reviewer_id)
+        return performance.add_review(data.emp_id, data.rating, data.comments, data.reviewer_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/performance/{emp_id}/badge")
+def get_badge(emp_id: int):
+    try:
+        employee.get_employee(emp_id)
+        badge = performance.get_performance_badge(emp_id)
+        return {"emp_id": emp_id, "badge": badge}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.get("/performance/{emp_id}/bonus")
+def get_bonus(emp_id: int):
+    try:
+        emp = employee.get_employee(emp_id)
+        bonus_percentage = performance.calculate_performance_bonus(emp_id)
+        annual_salary = emp["salary"]
+        bonus_amount = round(annual_salary * (bonus_percentage / 100), 2)
+        return {
+            "emp_id": emp_id,
+            "bonus_percentage": bonus_percentage,
+            "annual_salary": annual_salary,
+            "bonus_amount": bonus_amount,
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.get("/performance/team/{dept}")
+def get_team_performance(dept: str):
+    team_perf = performance.get_team_performance(dept)
+    return {"department": dept, "team_performance": team_perf}
+
 
 
 @app.get("/")

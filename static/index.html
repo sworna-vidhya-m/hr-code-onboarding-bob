@@ -47,6 +47,13 @@
   .badge.pending { background: #fff8e1; color: #f57f17; }
   .badge.approved { background: #e8f5e9; color: #2e7d32; }
   .badge.rejected { background: #fdecea; color: #c62828; }
+  .badge.Excellent { background: #e8f5e9; color: #2e7d32; }
+  .badge.Good { background: #e3f2fd; color: #1565c0; }
+  .badge.Average { background: #fff8e1; color: #f57f17; }
+  .badge.needs-improvement { background: #fdecea; color: #c62828; }
+  .stars { display: inline-flex; gap: 3px; font-size: 1.2rem; }
+  .star { color: #ddd; }
+  .star.filled { color: #ffc107; }
   .payroll-row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #f0f4f8; font-size: .95rem; }
   .payroll-row:last-child { border-bottom: none; font-weight: 700; color: #1565c0; }
   .emp-id-input { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 16px; }
@@ -64,6 +71,7 @@
   <div class="tab active" onclick="switchTab('employees')">Employees</div>
   <div class="tab" onclick="switchTab('leave')">Leave</div>
   <div class="tab" onclick="switchTab('payroll')">Payroll</div>
+  <div class="tab" onclick="switchTab('performance')">Performance Review</div>
 </div>
 
 <div class="content">
@@ -173,6 +181,39 @@
     </div>
   </div>
 
+  <!-- PERFORMANCE REVIEW -->
+  <div id="tab-performance" class="section">
+    <div class="card">
+      <h2>Performance Review</h2>
+      <div class="emp-id-input">
+        <div><label>Employee ID</label><input id="perf-emp-id" type="number" placeholder="Enter employee ID" value="1"></div>
+        <button class="btn" onclick="loadPerformance()">Load</button>
+      </div>
+      <div id="perf-loader" class="loader" style="display:none"><div class="spinner"></div></div>
+      <div id="perf-msg"></div>
+      <div id="perf-detail"></div>
+    </div>
+    <div class="card">
+      <h2>Add Performance Review</h2>
+      <div id="add-review-msg"></div>
+      <div class="form-grid">
+        <div><label>Employee ID</label><input id="rev-emp-id" type="number" placeholder="Employee ID" value="1"></div>
+        <div><label>Rating (1-5)</label>
+          <select id="rev-rating">
+            <option value="5">5 - Excellent</option>
+            <option value="4">4 - Good</option>
+            <option value="3">3 - Average</option>
+            <option value="2">2 - Needs Improvement</option>
+            <option value="1">1 - Poor</option>
+          </select>
+        </div>
+        <div><label>Reviewer ID</label><input id="rev-reviewer" type="number" placeholder="Reviewer ID" value="1"></div>
+        <div><label>Comments</label><textarea id="rev-comments" placeholder="Performance review comments..."></textarea></div>
+      </div>
+      <div class="btn-group"><button class="btn" onclick="addReview()">Submit Review</button></div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -180,7 +221,7 @@ const API = '';
 
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach((t, i) => {
-    const names = ['employees','leave','payroll'];
+    const names = ['employees','leave','payroll','performance'];
     t.classList.toggle('active', names[i] === tab);
   });
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -200,7 +241,7 @@ async function loadEmployees() {
   document.getElementById('emp-loader').style.display = 'block';
   document.getElementById('emp-table-wrap').innerHTML = '';
   try {
-    const res = await fetch(API + '/employees');
+    const res = await fetch('/employees');
     const data = await res.json();
     document.getElementById('emp-loader').style.display = 'none';
     if (!data.length) { document.getElementById('emp-table-wrap').innerHTML = '<p style="color:#546e8a">No employees found.</p>'; return; }
@@ -223,7 +264,7 @@ async function addEmployee() {
   const mgr = document.getElementById('new-manager').value;
   if (!name || !salary) { showMsg('add-emp-msg', 'Name and salary are required.', 'error'); return; }
   try {
-    const res = await fetch(API + '/employees', {
+    const res = await fetch('/employees', {
       method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ name, department: dept, salary, manager: mgr ? parseInt(mgr) : null })
     });
@@ -244,7 +285,7 @@ async function loadLeave() {
   document.getElementById('leave-balance-cards').innerHTML = '';
   document.getElementById('leave-history-wrap').innerHTML = '';
   try {
-    const res = await fetch(API + '/leave/' + empId);
+    const res = await fetch('/leave/' + empId);
     const data = await res.json();
     document.getElementById('leave-loader').style.display = 'none';
     if (!res.ok) { showMsg('leave-msg', data.detail || 'Employee not found.', 'error'); return; }
@@ -276,7 +317,7 @@ async function applyLeave() {
   const reason = document.getElementById('al-reason').value.trim();
   if (!emp_id || !days || !reason) { showMsg('apply-leave-msg', 'All fields are required.', 'error'); return; }
   try {
-    const res = await fetch(API + '/leave/apply', {
+    const res = await fetch('/leave/apply', {
       method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ emp_id, leave_type, days, reason })
     });
@@ -293,7 +334,7 @@ async function approveLeave() {
   const approved_by = parseInt(document.getElementById('apr-by').value);
   if (!leave_id || !approved_by) { showMsg('approve-leave-msg', 'Leave ID and approver ID are required.', 'error'); return; }
   try {
-    const res = await fetch(API + '/leave/approve', {
+    const res = await fetch('/leave/approve', {
       method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ leave_id, approved_by })
     });
@@ -309,7 +350,7 @@ async function loadPayroll() {
   document.getElementById('payroll-loader').style.display = 'block';
   document.getElementById('payroll-detail').innerHTML = '';
   try {
-    const res = await fetch(API + '/payroll/' + empId);
+    const res = await fetch('/payroll/' + empId);
     const d = await res.json();
     document.getElementById('payroll-loader').style.display = 'none';
     if (!res.ok) { showMsg('payroll-msg', d.detail || 'Employee not found.', 'error'); return; }
@@ -334,7 +375,7 @@ async function generatePayslip() {
   const year = document.getElementById('ps-year').value;
   if (!empId || !month || !year) { showMsg('payslip-msg', 'All fields are required.', 'error'); return; }
   try {
-    const res = await fetch(`${API}/payroll/${empId}/payslip?month=${month}&year=${year}`);
+    const res = await fetch(`/payroll/${empId}/payslip?month=${month}&year=${year}`);
     const d = await res.json();
     if (!res.ok) { showMsg('payslip-msg', d.detail || 'Error generating payslip.', 'error'); return; }
     const months = ['','January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -350,6 +391,105 @@ async function generatePayslip() {
     `;
     showMsg('payslip-msg', 'Payslip generated successfully.', 'success');
   } catch(e) { showMsg('payslip-msg', 'Network error.', 'error'); }
+}
+
+function renderStars(rating) {
+  let stars = '<div class="stars">';
+  for (let i = 1; i <= 5; i++) {
+    stars += '<span class="star ' + (i <= rating ? 'filled' : '') + '">★</span>';
+  }
+  stars += '</div>';
+  return stars;
+}
+
+function getBadgeClass(badge) {
+  if (badge === 'Needs Improvement') return 'needs-improvement';
+  return badge;
+}
+
+async function loadPerformance() {
+  const empId = document.getElementById('perf-emp-id').value;
+  if (!empId) { showMsg('perf-msg', 'Enter an employee ID.', 'error'); return; }
+  document.getElementById('perf-loader').style.display = 'block';
+  document.getElementById('perf-detail').innerHTML = '';
+  try {
+    const res = await fetch('/performance/' + empId);
+    const d = await res.json();
+    document.getElementById('perf-loader').style.display = 'none';
+    if (!res.ok) { showMsg('perf-msg', d.detail || 'Employee not found.', 'error'); return; }
+    
+    // Get employee info
+    const empRes = await fetch('/employees/' + empId);
+    const emp = await empRes.json();
+    
+    let html = `<div style="margin-bottom:16px;font-weight:600;font-size:1.05rem">${emp.name} — ${emp.department}</div>`;
+    
+    // Performance badge and rating
+    if (d.latest_review && d.latest_review.rating) {
+      html += `<div style="display:flex;gap:16px;align-items:center;margin-bottom:16px;">`;
+      html += `<div>${renderStars(d.latest_review.rating)}</div>`;
+      html += `<span class="badge ${getBadgeClass(d.badge)}">${d.badge}</span>`;
+      html += `</div>`;
+      
+      // Bonus information
+      html += `<div class="payroll-row"><span>Performance Bonus</span><span style="color:#2e7d32;font-weight:700">${d.bonus_percentage}%</span></div>`;
+      
+      const bonusRes = await fetch('/performance/' + empId + '/bonus');
+      const bonusData = await bonusRes.json();
+      html += `<div class="payroll-row"><span>Bonus Amount</span><span style="color:#2e7d32;font-weight:700">${fmt(bonusData.bonus_amount)}</span></div>`;
+    } else {
+      html += `<p style="color:#546e8a;margin-bottom:16px">No performance reviews yet.</p>`;
+    }
+    
+    // Review history
+    if (d.reviews && d.reviews.length) {
+      html += '<h3 style="margin:20px 0 10px;font-size:.97rem;color:#1565c0">Review History</h3>';
+      html += '<table><thead><tr><th>Date</th><th>Rating</th><th>Comments</th><th>Reviewer ID</th></tr></thead><tbody>';
+      d.reviews.forEach(r => {
+        html += `<tr><td>${r.review_date}</td><td>${renderStars(r.rating)}</td><td>${r.comments}</td><td>${r.reviewer_id}</td></tr>`;
+      });
+      html += '</tbody></table>';
+    }
+    
+    document.getElementById('perf-detail').innerHTML = html;
+  } catch(e) {
+    document.getElementById('perf-loader').style.display = 'none';
+    showMsg('perf-msg', 'Network error.', 'error');
+  }
+}
+
+async function addReview() {
+  const emp_id = parseInt(document.getElementById('rev-emp-id').value);
+  const rating = parseInt(document.getElementById('rev-rating').value);
+  const comments = document.getElementById('rev-comments').value.trim();
+  const reviewer_id = parseInt(document.getElementById('rev-reviewer').value);
+  
+  if (!emp_id || !rating || !comments || !reviewer_id) {
+    showMsg('add-review-msg', 'All fields are required.', 'error');
+    return;
+  }
+  
+  try {
+    const res = await fetch('/performance/review', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ emp_id, rating, comments, reviewer_id })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      showMsg('add-review-msg', data.detail || 'Error adding review.', 'error');
+      return;
+    }
+    showMsg('add-review-msg', `Review added successfully. Review ID: ${data.review_id}`, 'success');
+    document.getElementById('rev-comments').value = '';
+    
+    // Reload performance if viewing the same employee
+    if (document.getElementById('perf-emp-id').value == emp_id) {
+      loadPerformance();
+    }
+  } catch(e) {
+    showMsg('add-review-msg', 'Network error.', 'error');
+  }
 }
 
 // Set default month for payslip
