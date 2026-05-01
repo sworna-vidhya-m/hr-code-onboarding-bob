@@ -159,5 +159,44 @@ Turn idea into impact faster:
 All IBM Bob task session reports are in bob_sessions/ folder.
 These demonstrate Bob IDE usage for judging purposes.
 
+## How IBM Bob Was Used
+
+| Step | Bob Mode | What Bob Did |
+|------|----------|--------------|
+| 1 | Ask | Explained entire codebase to new developer |
+| 2 | Plan | Generated ONBOARDING.md automatically |
+| 3 | Code | Added Performance Review feature |
+| 4 | Ask | Fixed bugs and code review |
+
+## Performance Review Module
+
+New feature added by IBM Bob during hackathon.
+- Rating scale 1-5 stars
+- Badge: Excellent / Good / Average / Needs Improvement
+- Bonus: 5=20%, 4=15%, 3=10%, 2=5%, 1=0%
+
+New API endpoints:
+- GET /performance/{emp_id}
+- POST /performance/review
+- GET /performance/{emp_id}/badge
+- GET /performance/{emp_id}/bonus
+
+## Hackathon Theme Alignment
+
+| Scenario | Without Bob | With Bob |
+|----------|-------------|----------|
+| Onboard developer | 2 weeks | 2 minutes |
+| Document codebase | 3 days | 5 minutes |
+| Add new feature | 1 day | 10 minutes |
+
+## Bob Session Reports
+
+All IBM Bob task session reports are in bob_sessions/ folder:
+- task1: Codebase explanation (Ask mode)
+- task2: ONBOARDING.md generation (Plan mode)
+- task3: Performance feature (Code mode)
+- task4 to task9: Bug fixes and verifications
+- UI_Screenshots: All 4 tabs documented
+
 ## Team
 IBM Bob Dev Day Hackathon 2026
