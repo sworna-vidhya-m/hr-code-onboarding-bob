@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HR Employee Management System</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a2b42; }
+  header { background: #1565c0; color: #fff; padding: 18px 32px; display: flex; align-items: center; gap: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
+  header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: .5px; }
+  header span { font-size: .9rem; opacity: .75; }
+  .tabs { display: flex; background: #fff; border-bottom: 2px solid #e3eaf5; padding: 0 32px; }
+  .tab { padding: 14px 28px; cursor: pointer; font-size: .97rem; font-weight: 600; color: #546e8a; border-bottom: 3px solid transparent; transition: all .2s; }
+  .tab:hover { color: #1565c0; }
+  .tab.active { color: #1565c0; border-bottom-color: #1565c0; }
+  .content { padding: 28px 32px; max-width: 1100px; margin: 0 auto; }
+  .section { display: none; }
+  .section.active { display: block; }
+  .card { background: #fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(21,101,192,.07); padding: 24px; margin-bottom: 22px; }
+  .card h2 { font-size: 1.1rem; color: #1565c0; margin-bottom: 16px; border-bottom: 1px solid #e3eaf5; padding-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: .93rem; }
+  th { background: #e8f0fe; color: #1565c0; text-align: left; padding: 10px 12px; font-weight: 600; }
+  td { padding: 9px 12px; border-bottom: 1px solid #f0f4f8; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f5f9ff; }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  label { display: block; font-size: .85rem; font-weight: 600; color: #546e8a; margin-bottom: 5px; }
+  input, select, textarea { width: 100%; padding: 9px 12px; border: 1.5px solid #ccd9ea; border-radius: 6px; font-size: .93rem; transition: border .2s; outline: none; }
+  input:focus, select:focus, textarea:focus { border-color: #1565c0; }
+  textarea { resize: vertical; min-height: 70px; }
+  .btn { background: #1565c0; color: #fff; border: none; padding: 10px 22px; border-radius: 6px; cursor: pointer; font-size: .93rem; font-weight: 600; transition: background .2s; }
+  .btn:hover { background: #0d47a1; }
+  .btn-sm { padding: 6px 14px; font-size: .85rem; }
+  .btn-group { margin-top: 16px; }
+  .msg { padding: 10px 16px; border-radius: 6px; margin: 12px 0; font-size: .9rem; font-weight: 500; }
+  .msg.success { background: #e8f5e9; color: #2e7d32; border-left: 4px solid #43a047; }
+  .msg.error { background: #fdecea; color: #c62828; border-left: 4px solid #e53935; }
+  .spinner { display: inline-block; width: 22px; height: 22px; border: 3px solid #e3eaf5; border-top-color: #1565c0; border-radius: 50%; animation: spin .7s linear infinite; margin: 20px auto; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loader { text-align: center; padding: 20px; }
+  .balance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 14px; margin-bottom: 18px; }
+  .balance-card { background: linear-gradient(135deg, #1565c0, #1e88e5); color: #fff; border-radius: 10px; padding: 16px; text-align: center; }
+  .balance-card .val { font-size: 2rem; font-weight: 700; }
+  .balance-card .lbl { font-size: .8rem; opacity: .85; margin-top: 4px; text-transform: uppercase; letter-spacing: .5px; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: .78rem; font-weight: 600; }
+  .badge.pending { background: #fff8e1; color: #f57f17; }
+  .badge.approved { background: #e8f5e9; color: #2e7d32; }
+  .badge.rejected { background: #fdecea; color: #c62828; }
+  .payroll-row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #f0f4f8; font-size: .95rem; }
+  .payroll-row:last-child { border-bottom: none; font-weight: 700; color: #1565c0; }
+  .emp-id-input { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 16px; }
+  .emp-id-input > div { flex: 1; }
+</style>
+</head>
+<body>
+
+<header>
+  <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="16" fill="#1e88e5"/><path d="M10 22c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="12" r="3.5" stroke="#fff" stroke-width="2"/></svg>
+  <div><h1>HR Employee Management</h1><span>Internal HR Portal</span></div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('employees')">Employees</div>
+  <div class="tab" onclick="switchTab('leave')">Leave</div>
+  <div class="tab" onclick="switchTab('payroll')">Payroll</div>
+</div>
+
+<div class="content">
+
+  <!-- EMPLOYEES -->
+  <div id="tab-employees" class="section active">
+    <div class="card">
+      <h2>Employee List</h2>
+      <div id="emp-loader" class="loader"><div class="spinner"></div></div>
+      <div id="emp-msg"></div>
+      <div id="emp-table-wrap" style="overflow-x:auto;"></div>
+    </div>
+    <div class="card">
+      <h2>Add New Employee</h2>
+      <div id="add-emp-msg"></div>
+      <div class="form-grid">
+        <div><label>Full Name</label><input id="new-name" placeholder="e.g. Kavya Nair"></div>
+        <div><label>Department</label>
+          <select id="new-dept">
+            <option value="Engineering">Engineering</option>
+            <option value="HR">HR</option>
+            <option value="Finance">Finance</option>
+            <option value="Operations">Operations</option>
+            <option value="Marketing">Marketing</option>
+          </select>
+        </div>
+        <div><label>Annual Salary (₹)</label><input id="new-salary" type="number" placeholder="e.g. 70000"></div>
+        <div><label>Manager ID (optional)</label><input id="new-manager" type="number" placeholder="e.g. 1"></div>
+      </div>
+      <div class="btn-group"><button class="btn" onclick="addEmployee()">Add Employee</button></div>
+    </div>
+  </div>
+
+  <!-- LEAVE -->
+  <div id="tab-leave" class="section">
+    <div class="card">
+      <h2>Leave Balance</h2>
+      <div class="emp-id-input">
+        <div><label>Employee ID</label><input id="leave-emp-id" type="number" placeholder="Enter employee ID" value="1"></div>
+        <button class="btn" onclick="loadLeave()">Load</button>
+      </div>
+      <div id="leave-loader" class="loader" style="display:none"><div class="spinner"></div></div>
+      <div id="leave-msg"></div>
+      <div id="leave-balance-cards" class="balance-grid"></div>
+      <div id="leave-history-wrap" style="overflow-x:auto;"></div>
+    </div>
+    <div class="card">
+      <h2>Apply for Leave</h2>
+      <div id="apply-leave-msg"></div>
+      <div class="form-grid">
+        <div><label>Employee ID</label><input id="al-emp-id" type="number" placeholder="Employee ID" value="1"></div>
+        <div><label>Leave Type</label>
+          <select id="al-type">
+            <option value="annual">Annual (18 days)</option>
+            <option value="sick">Sick (10 days)</option>
+            <option value="maternity">Maternity (182 days)</option>
+            <option value="paternity">Paternity (5 days)</option>
+          </select>
+        </div>
+        <div><label>Number of Days</label><input id="al-days" type="number" placeholder="e.g. 2" min="1"></div>
+        <div><label>Reason</label><textarea id="al-reason" placeholder="Reason for leave..."></textarea></div>
+      </div>
+      <div class="btn-group"><button class="btn" onclick="applyLeave()">Apply Leave</button></div>
+    </div>
+    <div class="card">
+      <h2>Approve Leave</h2>
+      <div id="approve-leave-msg"></div>
+      <div class="form-grid">
+        <div><label>Leave ID</label><input id="apr-leave-id" type="number" placeholder="Leave ID"></div>
+        <div><label>Approved By (Employee ID)</label><input id="apr-by" type="number" placeholder="Manager ID"></div>
+      </div>
+      <div class="btn-group"><button class="btn" onclick="approveLeave()">Approve Leave</button></div>
+    </div>
+  </div>
+
+  <!-- PAYROLL -->
+  <div id="tab-payroll" class="section">
+    <div class="card">
+      <h2>Salary Details</h2>
+      <div class="emp-id-input">
+        <div><label>Employee ID</label><input id="pay-emp-id" type="number" placeholder="Enter employee ID" value="1"></div>
+        <button class="btn" onclick="loadPayroll()">Load</button>
+      </div>
+      <div id="payroll-loader" class="loader" style="display:none"><div class="spinner"></div></div>
+      <div id="payroll-msg"></div>
+      <div id="payroll-detail"></div>
+    </div>
+    <div class="card">
+      <h2>Generate Payslip</h2>
+      <div class="form-grid">
+        <div><label>Employee ID</label><input id="ps-emp-id" type="number" placeholder="Employee ID" value="1"></div>
+        <div><label>Month</label>
+          <select id="ps-month">
+            <option value="1">January</option><option value="2">February</option>
+            <option value="3">March</option><option value="4">April</option>
+            <option value="5">May</option><option value="6">June</option>
+            <option value="7">July</option><option value="8">August</option>
+            <option value="9">September</option><option value="10">October</option>
+            <option value="11">November</option><option value="12">December</option>
+          </select>
+        </div>
+        <div><label>Year</label><input id="ps-year" type="number" placeholder="e.g. 2026" value="2026"></div>
+      </div>
+      <div class="btn-group"><button class="btn" onclick="generatePayslip()">Generate Payslip</button></div>
+      <div id="payslip-msg"></div>
+      <div id="payslip-detail"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = '';
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    const names = ['employees','leave','payroll'];
+    t.classList.toggle('active', names[i] === tab);
+  });
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'employees') loadEmployees();
+}
+
+function showMsg(id, text, type) {
+  const el = document.getElementById(id);
+  el.innerHTML = `<div class="msg ${type}">${text}</div>`;
+  setTimeout(() => { el.innerHTML = ''; }, 4000);
+}
+
+function fmt(n) { return '₹' + Number(n).toLocaleString('en-IN', {maximumFractionDigits: 2}); }
+
+async function loadEmployees() {
+  document.getElementById('emp-loader').style.display = 'block';
+  document.getElementById('emp-table-wrap').innerHTML = '';
+  try {
+    const res = await fetch(API + '/employees');
+    const data = await res.json();
+    document.getElementById('emp-loader').style.display = 'none';
+    if (!data.length) { document.getElementById('emp-table-wrap').innerHTML = '<p style="color:#546e8a">No employees found.</p>'; return; }
+    let html = '<table><thead><tr><th>ID</th><th>Name</th><th>Department</th><th>Join Date</th><th>Annual Salary</th><th>Manager ID</th></tr></thead><tbody>';
+    data.forEach(e => {
+      html += `<tr><td>${e.id}</td><td>${e.name}</td><td>${e.department}</td><td>${e.join_date}</td><td>${fmt(e.salary)}</td><td>${e.manager ?? '—'}</td></tr>`;
+    });
+    html += '</tbody></table>';
+    document.getElementById('emp-table-wrap').innerHTML = html;
+  } catch(err) {
+    document.getElementById('emp-loader').style.display = 'none';
+    showMsg('emp-msg', 'Failed to load employees.', 'error');
+  }
+}
+
+async function addEmployee() {
+  const name = document.getElementById('new-name').value.trim();
+  const dept = document.getElementById('new-dept').value;
+  const salary = parseFloat(document.getElementById('new-salary').value);
+  const mgr = document.getElementById('new-manager').value;
+  if (!name || !salary) { showMsg('add-emp-msg', 'Name and salary are required.', 'error'); return; }
+  try {
+    const res = await fetch(API + '/employees', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ name, department: dept, salary, manager: mgr ? parseInt(mgr) : null })
+    });
+    const data = await res.json();
+    if (!res.ok) { showMsg('add-emp-msg', data.detail || 'Error adding employee.', 'error'); return; }
+    showMsg('add-emp-msg', `Employee "${data.name}" added with ID ${data.id}.`, 'success');
+    document.getElementById('new-name').value = '';
+    document.getElementById('new-salary').value = '';
+    document.getElementById('new-manager').value = '';
+    loadEmployees();
+  } catch(e) { showMsg('add-emp-msg', 'Network error.', 'error'); }
+}
+
+async function loadLeave() {
+  const empId = document.getElementById('leave-emp-id').value;
+  if (!empId) { showMsg('leave-msg', 'Enter an employee ID.', 'error'); return; }
+  document.getElementById('leave-loader').style.display = 'block';
+  document.getElementById('leave-balance-cards').innerHTML = '';
+  document.getElementById('leave-history-wrap').innerHTML = '';
+  try {
+    const res = await fetch(API + '/leave/' + empId);
+    const data = await res.json();
+    document.getElementById('leave-loader').style.display = 'none';
+    if (!res.ok) { showMsg('leave-msg', data.detail || 'Employee not found.', 'error'); return; }
+    const labels = { annual: 'Annual', sick: 'Sick', maternity: 'Maternity', paternity: 'Paternity' };
+    let cards = '';
+    for (const [k, v] of Object.entries(data.balances)) {
+      cards += `<div class="balance-card"><div class="val">${v}</div><div class="lbl">${labels[k] || k} Days</div></div>`;
+    }
+    document.getElementById('leave-balance-cards').innerHTML = cards;
+
+    if (data.history && data.history.length) {
+      let h = '<h3 style="margin:16px 0 10px;font-size:.97rem;color:#1565c0">Leave History</h3><table><thead><tr><th>ID</th><th>Type</th><th>Days</th><th>Reason</th><th>Status</th><th>Applied On</th></tr></thead><tbody>';
+      data.history.forEach(r => {
+        h += `<tr><td>${r.leave_id}</td><td>${r.leave_type}</td><td>${r.days}</td><td>${r.reason}</td><td><span class="badge ${r.status}">${r.status}</span></td><td>${r.applied_on}</td></tr>`;
+      });
+      h += '</tbody></table>';
+      document.getElementById('leave-history-wrap').innerHTML = h;
+    }
+  } catch(e) {
+    document.getElementById('leave-loader').style.display = 'none';
+    showMsg('leave-msg', 'Network error.', 'error');
+  }
+}
+
+async function applyLeave() {
+  const emp_id = parseInt(document.getElementById('al-emp-id').value);
+  const leave_type = document.getElementById('al-type').value;
+  const days = parseInt(document.getElementById('al-days').value);
+  const reason = document.getElementById('al-reason').value.trim();
+  if (!emp_id || !days || !reason) { showMsg('apply-leave-msg', 'All fields are required.', 'error'); return; }
+  try {
+    const res = await fetch(API + '/leave/apply', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ emp_id, leave_type, days, reason })
+    });
+    const data = await res.json();
+    if (!res.ok) { showMsg('apply-leave-msg', data.detail || 'Error applying leave.', 'error'); return; }
+    showMsg('apply-leave-msg', `Leave applied. Leave ID: ${data.leave_id}`, 'success');
+    document.getElementById('al-days').value = '';
+    document.getElementById('al-reason').value = '';
+  } catch(e) { showMsg('apply-leave-msg', 'Network error.', 'error'); }
+}
+
+async function approveLeave() {
+  const leave_id = parseInt(document.getElementById('apr-leave-id').value);
+  const approved_by = parseInt(document.getElementById('apr-by').value);
+  if (!leave_id || !approved_by) { showMsg('approve-leave-msg', 'Leave ID and approver ID are required.', 'error'); return; }
+  try {
+    const res = await fetch(API + '/leave/approve', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ leave_id, approved_by })
+    });
+    const data = await res.json();
+    if (!res.ok) { showMsg('approve-leave-msg', data.detail || 'Error approving leave.', 'error'); return; }
+    showMsg('approve-leave-msg', `Leave ${leave_id} approved successfully.`, 'success');
+  } catch(e) { showMsg('approve-leave-msg', 'Network error.', 'error'); }
+}
+
+async function loadPayroll() {
+  const empId = document.getElementById('pay-emp-id').value;
+  if (!empId) { showMsg('payroll-msg', 'Enter an employee ID.', 'error'); return; }
+  document.getElementById('payroll-loader').style.display = 'block';
+  document.getElementById('payroll-detail').innerHTML = '';
+  try {
+    const res = await fetch(API + '/payroll/' + empId);
+    const d = await res.json();
+    document.getElementById('payroll-loader').style.display = 'none';
+    if (!res.ok) { showMsg('payroll-msg', d.detail || 'Employee not found.', 'error'); return; }
+    document.getElementById('payroll-detail').innerHTML = `
+      <div style="margin-bottom:8px;font-weight:600;font-size:1.05rem">${d.name} — ${d.department}</div>
+      <div class="payroll-row"><span>Annual Salary</span><span>${fmt(d.annual_salary)}</span></div>
+      <div class="payroll-row"><span>Monthly Gross</span><span>${fmt(d.monthly_gross)}</span></div>
+      <div class="payroll-row"><span>Monthly Tax</span><span style="color:#c62828">- ${fmt(d.monthly_tax)}</span></div>
+      <div class="payroll-row"><span>PF Deduction (12%)</span><span style="color:#c62828">- ${fmt(d.monthly_pf)}</span></div>
+      <div class="payroll-row"><span>Net Monthly Pay</span><span>${fmt(d.monthly_net)}</span></div>
+      <div class="payroll-row" style="border-top:1.5px solid #e3eaf5;margin-top:6px;padding-top:12px"><span>Experience</span><span>${d.experience_years} year(s)</span></div>
+    `;
+  } catch(e) {
+    document.getElementById('payroll-loader').style.display = 'none';
+    showMsg('payroll-msg', 'Network error.', 'error');
+  }
+}
+
+async function generatePayslip() {
+  const empId = document.getElementById('ps-emp-id').value;
+  const month = document.getElementById('ps-month').value;
+  const year = document.getElementById('ps-year').value;
+  if (!empId || !month || !year) { showMsg('payslip-msg', 'All fields are required.', 'error'); return; }
+  try {
+    const res = await fetch(`${API}/payroll/${empId}/payslip?month=${month}&year=${year}`);
+    const d = await res.json();
+    if (!res.ok) { showMsg('payslip-msg', d.detail || 'Error generating payslip.', 'error'); return; }
+    const months = ['','January','February','March','April','May','June','July','August','September','October','November','December'];
+    document.getElementById('payslip-detail').innerHTML = `
+      <div style="margin-top:18px;border:1.5px solid #e3eaf5;border-radius:8px;padding:18px;">
+        <div style="font-size:1.1rem;font-weight:700;color:#1565c0;margin-bottom:12px">Payslip — ${months[d.month]} ${d.year}</div>
+        <div style="margin-bottom:6px"><b>${d.name}</b> | ${d.department}</div>
+        <div class="payroll-row"><span>Gross Salary</span><span>${fmt(d.gross_salary)}</span></div>
+        <div class="payroll-row"><span>Tax</span><span style="color:#c62828">- ${fmt(d.deductions.tax)}</span></div>
+        <div class="payroll-row"><span>PF</span><span style="color:#c62828">- ${fmt(d.deductions.pf)}</span></div>
+        <div class="payroll-row"><span>Net Pay</span><span>${fmt(d.net_salary)}</span></div>
+      </div>
+    `;
+    showMsg('payslip-msg', 'Payslip generated successfully.', 'success');
+  } catch(e) { showMsg('payslip-msg', 'Network error.', 'error'); }
+}
+
+// Set default month for payslip
+(function() {
+  document.getElementById('ps-month').value = new Date().getMonth() + 1;
+  loadEmployees();
+})();
+</script>
+</body>
+</html>
