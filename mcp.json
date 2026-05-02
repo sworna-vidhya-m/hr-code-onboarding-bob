@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "hr-onboarding": {
+      "command": "python3",
+      "args": ["mcp_server.py"],
+      "cwd": "/Users/swornamacair/Documents/IBM_Hackathon/hr-code-onboarding-bob"
+    }
+  }
+}
+
+// Made with Bob
